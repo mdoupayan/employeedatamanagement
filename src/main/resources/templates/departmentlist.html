@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Department List</title>
+</head>
+<body>
+    <h1>Department List</h1>
+    <button onclick="location.href='/employeelist'">Back to Employee List</button>
+    <button onclick="addDepartment()">Add Department</button>
+
+    <table id="departmentTable" border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Actions</th>
+        </tr>
+    </table>
+
+    <script>
+        // Fetch and display departments
+        fetch('/departments')
+            .then(response => response.json())
+            .then(data => {
+                const table = document.getElementById('departmentTable');
+                data.forEach(department => {
+                    const row = table.insertRow();
+                    row.insertCell(0).innerText = department.id;
+                    row.insertCell(1).innerText = department.name;
+                    row.insertCell(2).innerHTML = `
+                        <button onclick="updateDepartment(${department.id})">Update</button>
+                        <button onclick="deleteDepartment(${department.id})">Delete</button>
+                    `;
+                });
+            })
+            .catch(error => console.error('Error fetching department data:', error));
+
+        function addDepartment() {
+            const name = prompt("Enter Department Name:");
+            if (name) {
+                fetch('/departments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                })
+                .then(response => response.ok ? location.reload() : alert('Error adding department'))
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
+        function updateDepartment(id) {
+            const newName = prompt("Enter new department name:");
+            if (newName) {
+                fetch(`/departments/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                })
+                .then(response => response.ok ? location.reload() : alert('Error updating department'))
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
+        function deleteDepartment(id) {
+            if (confirm("Are you sure you want to delete this department?")) {
+                fetch(`/departments/${id}`, { method: 'DELETE' })
+                .then(response => response.ok ? location.reload() : alert('Error deleting department'))
+                .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
+</body>
+</html>
